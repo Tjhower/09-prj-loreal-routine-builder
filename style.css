@@ -636,3 +636,87 @@ option[value="fragrance"] {
 .site-footer a:hover {
   color: #666666;
 }
+
+/* =========================
+   RTL SUPPORT SYSTEM
+========================= */
+/* RTL toggle switch*/
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  position: absolute;
+  top: 20px;
+  right: 20px;
+
+  cursor: pointer;
+  user-select: none;
+}
+.lang-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e3a535;
+  opacity: 0.6;
+  transition: 0.2s ease;
+}
+
+.lang-switch.active-en .en {
+  opacity: 1;
+}
+.lang-switch.active-ar .ar {
+  opacity: 1;
+}
+
+.switch-track {
+  width: 56px;
+  height: 28px;
+
+  background: linear-gradient(135deg, #333, #111);
+  border: 1px solid rgba(227, 165, 53, 0.4);
+  border-radius: 50px;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.switch-knob {
+  width: 22px;
+  height: 22px;
+
+  background: linear-gradient(135deg, #e3a535, #fad083);
+  border-radius: 50%;
+
+  position: absolute;
+  left: 3px;
+
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(227, 165, 53, 0.4);
+}
+.lang-switch.active-ar .switch-knob {
+  left: 31px;
+}
+.lang-switch.active-ar .switch-track {
+  box-shadow: 0 0 12px rgba(227, 165, 53, 0.3);
+}
+
+html[dir="rtl"] .chat-window {
+  direction: rtl;
+  text-align: right;
+}
+html[dir="rtl"] .message.user {
+  margin-left: 0;
+  margin-right: auto;
+  text-align: right;
+}
+html[dir="rtl"] .message.bot {
+  text-align: right;
+}
+html[dir="rtl"] .chat-form {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .chatbox,
+html[dir="rtl"] .selected-products {
+  text-align: right;
+}

@@ -11,6 +11,14 @@ const chatWindow = document.getElementById("chatWindow");
 const selectedProductsList = document.getElementById("selectedProductsList");
 const generateBtn = document.getElementById("generateRoutine");
 
+//* Language Togggle *//
+function setDirection(lang) {
+  const isRTL = ["ar", "he", "fa", "ur"].includes(lang);
+
+  document.documentElement.dir = isRTL ? "rtl" : "ltr";
+  document.documentElement.lang = lang;
+}
+
 /* =========================
    STATE
 ========================= */
@@ -233,7 +241,14 @@ async function sendToChat(userText) {
   addMessage(userText, "user");
 
   /* 🔹 ALWAYS rebuild system message cleanly */
-  messages[0] = buildSystemMessage();
+  const systemMessage = buildSystemMessage();
+
+  const conversationMessages = [
+    systemMessage,
+    ...messages.filter((m) => m.role !== "system"),
+    { role: "user", content: userText },
+  ];
+  body: JSON.stringify({ messages: conversationMessages });
 
   /* add user message to conversation */
   messages.push({ role: "user", content: userText });
@@ -375,3 +390,30 @@ function triggerChatGlow() {
     chatbox.classList.remove("glow-highlight");
   }, 1200);
 }
+
+//* Toggle RTL switch *//
+const langSwitch = document.getElementById("rtlToggle");
+langSwitch.classList.add("active-en");
+let isRTL = false;
+
+langSwitch.addEventListener("click", () => {
+  isRTL = !isRTL;
+
+  if (isRTL) {
+    document.documentElement.dir = "rtl";
+    document.documentElement.lang = "ar";
+
+    langSwitch.classList.add("active-ar");
+    langSwitch.classList.remove("active-en");
+  } else {
+    document.documentElement.dir = "ltr";
+    document.documentElement.lang = "en";
+    langSwitch.classList.remove("active-ar");
+  }
+});
+function refreshLayoutAfterDirectionChange() {
+  setTimeout(() => {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }, 100);
+}
+toggleRTL();
