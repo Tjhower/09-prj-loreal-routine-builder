@@ -9,17 +9,12 @@ const chatForm = document.getElementById("chatForm");
 const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
 const selectedProductsList = document.getElementById("selectedProductsList");
-const generateBtn = document.getElementById("generateBtn");
+const generateBtn = document.getElementById("generateRoutine");
 
 /* =========================
    STATE
 ========================= */
-let selectedProducts = [];
-
-let messages = [
-  {
-    role: "system",
-    content: `
+const baseSystemPrompt = `
 You are a professional beauty assistant for L'Oréal.
 
 Your role is to:
@@ -31,7 +26,13 @@ Rules:
 - Only discuss beauty-related topics
 - Organize routines into Morning / Evening
 - Be concise and helpful
-`,
+`;
+
+let selectedProducts = [];
+let messages = [
+  {
+    role: "system",
+    content: baseSystemPrompt,
   },
 ];
 
@@ -214,22 +215,30 @@ function attachRemoveHandlers() {
   });
 }
 
-/* =========================
-   CORE CHAT FUNCTION (UNIFIED PIPELINE)
-========================= */
-async function sendToChat(userText) {
-  /* user message */
-  addMessage(userText, "user");
-
-  /* inject selected products */
+function buildSystemMessage() {
   const selectedContext = selectedProducts.length
     ? `Selected products:\n${selectedProducts.map((p) => `- ${p.name}`).join("\n")}`
     : "No selected products.";
 
-  messages[0].content = messages[0].content + "\n\n" + selectedContext;
+  return {
+    role: "system",
+    content: baseSystemPrompt + "\n\n" + selectedContext,
+  };
+}
+/* =========================
+   CORE CHAT FUNCTION (UNIFIED PIPELINE)
+========================= */
+async function sendToChat(userText) {
+  /* user message UI */
+  addMessage(userText, "user");
 
+  /* 🔹 ALWAYS rebuild system message cleanly */
+  messages[0] = buildSystemMessage();
+
+  /* add user message to conversation */
   messages.push({ role: "user", content: userText });
 
+  /* trim history (preserve system message) */
   if (messages.length > MAX_MESSAGES) {
     messages = [messages[0], ...messages.slice(-MAX_MESSAGES)];
   }
@@ -248,6 +257,7 @@ async function sendToChat(userText) {
 
     const data = await res.json();
 
+    /* remove typing indicator */
     chatWindow.removeChild(loadingMsg);
 
     if (!data.choices || !data.choices[0]) {
@@ -256,7 +266,7 @@ async function sendToChat(userText) {
 
     const botReply = data.choices[0].message.content;
 
-    /* bot message (OLD UX STYLE) */
+    /* bot message UI */
     const botDiv = document.createElement("div");
     botDiv.classList.add("message", "bot");
 
@@ -271,11 +281,16 @@ async function sendToChat(userText) {
 
     typeWriter(botDiv, botReply);
 
+    /* store assistant response */
     messages.push({ role: "assistant", content: botReply });
+
+    return true;
   } catch (err) {
     chatWindow.removeChild(loadingMsg);
     addMessage("⚠️ Something went wrong.", "bot");
     console.error(err);
+
+    throw err;
   }
 }
 
@@ -293,13 +308,22 @@ chatForm.addEventListener("submit", (e) => {
 });
 
 /* =========================
-   GENERATE ROUTINE BUTTON (SAME SYSTEM)
+   GENERATE ROUTINE BUTTON
 ========================= */
-generateBtn.addEventListener("click", () => {
+generateBtn.addEventListener("click", async () => {
   if (!selectedProducts.length) {
     addMessage("Please select products first.", "bot");
     return;
   }
+
+  const btnContent = generateBtn.querySelector(".btn-content");
+  const btnLoader = generateBtn.querySelector(".btn-loader");
+
+  // START loading
+  generateBtn.disabled = true;
+  generateBtn.classList.add("loading");
+  btnContent.classList.add("hidden");
+  btnLoader.classList.remove("hidden");
 
   const prompt = `
 Create a personalized beauty routine using:
@@ -311,5 +335,43 @@ Include:
 - Simple instructions
 `;
 
-  sendToChat(prompt);
+  try {
+    await sendToChat(prompt);
+  } catch (err) {
+    console.error("Generate routine failed:", err);
+  } finally {
+    // reset button state
+    generateBtn.disabled = false;
+    generateBtn.classList.remove("loading");
+
+    const btnContent = generateBtn.querySelector(".btn-content");
+    const btnLoader = generateBtn.querySelector(".btn-loader");
+
+    btnContent.classList.remove("hidden");
+    btnLoader.classList.add("hidden");
+    // autoscroll to chatbox
+    const chatbox = document.querySelector(".chatbox");
+    chatWindow.scrollIntoView({ behavior: "smooth", block: "center" });
+    // trigger glow after scroll starts/finishes
+    setTimeout(() => {
+      triggerChatGlow();
+    }, 400);
+  }
 });
+// generated routine glow
+function triggerChatGlow() {
+  const chatbox = document.querySelector(".chatbox");
+
+  // restart animation cleanly
+  chatbox.classList.remove("glow-highlight");
+
+  // force reflow so animation can restart
+  void chatbox.offsetWidth;
+
+  chatbox.classList.add("glow-highlight");
+
+  // remove class after animation ends
+  setTimeout(() => {
+    chatbox.classList.remove("glow-highlight");
+  }, 1200);
+}
