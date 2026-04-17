@@ -11,6 +11,14 @@ const chatWindow = document.getElementById("chatWindow");
 const selectedProductsList = document.getElementById("selectedProductsList");
 const generateBtn = document.getElementById("generateRoutine");
 
+const productModal = document.getElementById("productModal");
+const modalClose = document.getElementById("modalClose");
+
+const modalImage = document.getElementById("modalImage");
+const modalTitle = document.getElementById("modalTitle");
+const modalBrand = document.getElementById("modalBrand");
+const modalDescription = document.getElementById("modalDescription");
+
 //* Language Togggle *//
 function setDirection(lang) {
   const isRTL = ["ar", "he", "fa", "ur"].includes(lang);
@@ -130,6 +138,42 @@ function typeWriter(element, text, speed = 18) {
 }
 
 /* =========================
+  MODAL FUNCTIONS
+========================= */
+// OPEN
+function openProductModal(product) {
+  modalImage.src = product.image;
+  modalTitle.textContent = product.name;
+  modalBrand.textContent = product.brand;
+  modalDescription.textContent = product.description;
+
+  productModal.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+// CLOSE
+function closeProductModal() {
+  productModal.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+// X button
+modalClose.addEventListener("click", closeProductModal);
+
+// backdrop click
+productModal.addEventListener("click", (e) => {
+  if (e.target === productModal) {
+    closeProductModal();
+  }
+});
+
+// escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && productModal.classList.contains("active")) {
+    closeProductModal();
+  }
+});
+/* =========================
    PRODUCT FUNCTIONS
 ========================= */
 async function loadProducts() {
@@ -145,11 +189,19 @@ function displayProducts(products) {
 
       return `
       <div class="product-card ${isSelected ? "selected" : ""}" data-id="${product.id}">
+        
+        <!-- INFO ICON -->
+        <button class="info-icon" aria-label="View product details">
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
+
         <img src="${product.image}" alt="${product.name}">
+
         <div class="product-info">
           <h3>${product.name}</h3>
           <p>${product.brand}</p>
         </div>
+
       </div>
     `;
     })
@@ -169,10 +221,17 @@ categoryFilter.addEventListener("change", async (e) => {
 ========================= */
 function attachProductClickHandlers(products) {
   document.querySelectorAll(".product-card").forEach((card) => {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (e) => {
       const id = card.dataset.id;
       const product = products.find((p) => p.id == id);
 
+      // If info icon clicked → OPEN MODAL ONLY
+      if (e.target.closest(".info-icon")) {
+        openProductModal(product);
+        return;
+      }
+
+      // Otherwise → SELECT PRODUCT
       const exists = selectedProducts.some((p) => p.id == id);
 
       if (exists) {
@@ -180,7 +239,6 @@ function attachProductClickHandlers(products) {
       } else {
         selectedProducts.push(product);
       }
-
       card.classList.toggle("selected");
       updateSelectedProductsUI();
     });
@@ -237,10 +295,12 @@ function buildSystemMessage() {
    CORE CHAT FUNCTION (UNIFIED PIPELINE)
 ========================= */
 async function sendToChat(userText) {
-  /* user message UI */
   addMessage(userText, "user");
 
-  /* 🔹 ALWAYS rebuild system message cleanly */
+  const loadingMsg = createTypingIndicator();
+  chatWindow.appendChild(loadingMsg);
+  scrollToBottom(true);
+
   const systemMessage = buildSystemMessage();
 
   const conversationMessages = [
@@ -248,40 +308,24 @@ async function sendToChat(userText) {
     ...messages.filter((m) => m.role !== "system"),
     { role: "user", content: userText },
   ];
-  body: JSON.stringify({ messages: conversationMessages });
-
-  /* add user message to conversation */
-  messages.push({ role: "user", content: userText });
-
-  /* trim history (preserve system message) */
-  if (messages.length > MAX_MESSAGES) {
-    messages = [messages[0], ...messages.slice(-MAX_MESSAGES)];
-  }
-
-  /* typing indicator */
-  const loadingMsg = createTypingIndicator();
-  chatWindow.appendChild(loadingMsg);
-  scrollToBottom(true);
 
   try {
     const res = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages: conversationMessages }),
     });
 
     const data = await res.json();
 
-    /* remove typing indicator */
     chatWindow.removeChild(loadingMsg);
 
-    if (!data.choices || !data.choices[0]) {
+    if (!data.choices?.[0]) {
       throw new Error("Bad API response");
     }
 
     const botReply = data.choices[0].message.content;
 
-    /* bot message UI */
     const botDiv = document.createElement("div");
     botDiv.classList.add("message", "bot");
 
@@ -292,19 +336,16 @@ async function sendToChat(userText) {
     botDiv.style.opacity = "1";
     botDiv.classList.add("animate");
 
-    scrollToBottom(true);
-
     typeWriter(botDiv, botReply);
 
-    /* store assistant response */
     messages.push({ role: "assistant", content: botReply });
 
+    scrollToBottom(true);
     return true;
   } catch (err) {
     chatWindow.removeChild(loadingMsg);
     addMessage("⚠️ Something went wrong.", "bot");
     console.error(err);
-
     throw err;
   }
 }
@@ -355,22 +396,24 @@ Include:
   } catch (err) {
     console.error("Generate routine failed:", err);
   } finally {
-    // reset button state
+    // RESET BUTTON
     generateBtn.disabled = false;
     generateBtn.classList.remove("loading");
-
-    const btnContent = generateBtn.querySelector(".btn-content");
-    const btnLoader = generateBtn.querySelector(".btn-loader");
-
     btnContent.classList.remove("hidden");
     btnLoader.classList.add("hidden");
-    // autoscroll to chatbox
+
+    // STEP 1: scroll chatBOX (not chatWindow)
     const chatbox = document.querySelector(".chatbox");
-    chatWindow.scrollIntoView({ behavior: "smooth", block: "center" });
-    // trigger glow after scroll starts/finishes
+
+    chatbox.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+
+    // STEP 2: trigger glow AFTER scroll begins
     setTimeout(() => {
       triggerChatGlow();
-    }, 400);
+    }, 500);
   }
 });
 // generated routine glow
@@ -393,27 +436,23 @@ function triggerChatGlow() {
 
 //* Toggle RTL switch *//
 const langSwitch = document.getElementById("rtlToggle");
-langSwitch.classList.add("active-en");
+
 let isRTL = false;
 
 langSwitch.addEventListener("click", () => {
   isRTL = !isRTL;
 
-  if (isRTL) {
-    document.documentElement.dir = "rtl";
-    document.documentElement.lang = "ar";
+  document.documentElement.dir = isRTL ? "rtl" : "ltr";
+  document.documentElement.lang = isRTL ? "ar" : "en";
 
-    langSwitch.classList.add("active-ar");
-    langSwitch.classList.remove("active-en");
-  } else {
-    document.documentElement.dir = "ltr";
-    document.documentElement.lang = "en";
-    langSwitch.classList.remove("active-ar");
-  }
+  langSwitch.classList.toggle("active-ar", isRTL);
+  langSwitch.classList.toggle("active-en", !isRTL);
+
+  refreshLayoutAfterDirectionChange();
 });
+
 function refreshLayoutAfterDirectionChange() {
   setTimeout(() => {
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }, 100);
 }
-toggleRTL();

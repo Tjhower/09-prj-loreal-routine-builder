@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>L'Oréal | Smart Routine & Product Advisor</title>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- RTL Toggle -->
     <div id="rtlToggle" class="lang-switch">
       <span class="lang-label en">EN</span>
       <div class="switch-track">
@@ -11,32 +32,17 @@
       <span class="lang-label ar">AR</span>
     </div>
 
-    <title>L'Oréal | Smart Routine &amp; Product Advisor</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-
-  <body>
     <div class="page-wrapper">
-      <!------- Header / Branding ------->
+      <!-- Header -->
       <header class="site-header">
         <img src="img/loreal-logo-white.svg" alt="L'Oréal Logo" class="logo" />
-        <h1 class="site-title">Smart Routine &amp; Product Advisor</h1>
+        <h1 class="site-title">Smart Routine & Product Advisor</h1>
       </header>
 
       <!-- Category Filter -->
       <div class="search-section">
         <select id="categoryFilter">
-          <option value="Select Category" disabled selected>
-            Choose a Category
-          </option>
+          <option value="" disabled selected>Choose a Category</option>
           <option value="cleanser">Cleansers</option>
           <option value="moisturizer">Moisturizers & Treatments</option>
           <option value="haircare">Haircare</option>
@@ -56,9 +62,11 @@
       <div class="selected-products">
         <h2>Selected Products:</h2>
         <div id="selectedProductsList"></div>
+
         <button id="generateRoutine" class="generate-btn">
           <span class="btn-content">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Routine
+            <i class="fa-solid fa-wand-magic-sparkles" alt="generate-btn i"></i>
+            Generate Routine
           </span>
 
           <span class="btn-loader hidden">
@@ -67,13 +75,15 @@
         </button>
       </div>
 
-      <!------- Chat Area ------->
+      <!-- Chat -->
       <section class="chatbox">
         <h2>Let's Build Your Routine!</h2>
+
         <div id="chatWindow" class="chat-window"></div>
 
         <form id="chatForm" class="chat-form">
           <label for="userInput" class="visually-hidden">Message</label>
+
           <input
             id="userInput"
             name="userInput"
@@ -82,6 +92,7 @@
             autocomplete="off"
             required
           />
+
           <button type="submit" id="sendBtn">
             <i class="fa-solid fa-paper-plane"></i>
             <span class="visually-hidden">Send</span>
@@ -89,11 +100,10 @@
         </form>
       </section>
 
-      <!------- Footer Links ------->
+      <!-- Footer -->
       <footer class="site-footer">
         <p>&copy; 2025 L'Oréal. All rights reserved.</p>
         <nav>
-          <!-- These URLs are placeholders -->
           <a href="#">Privacy Policy</a>
           <a href="#">Terms of Use</a>
           <a href="#">Contact</a>
@@ -101,7 +111,28 @@
       </footer>
     </div>
 
-    <!-- secrets.js can be removed when using Cloudflare Workers for API requests -->
+    <!-- PRODUCT MODAL -->
+    <div id="productModal" class="modal" aria-hidden="true" dir="auto">
+      <div class="modal-content" role="dialog" aria-modal="true">
+        <button
+          class="modal-close"
+          id="modalClose"
+          aria-label="Close product details"
+        >
+          ✕
+        </button>
+
+        <img id="modalImage" alt="" />
+
+        <div class="modal-text">
+          <h2 id="modalTitle"></h2>
+          <h3 id="modalBrand"></h3>
+          <p id="modalDescription"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="secrets.js"></script>
     <script src="script.js"></script>
   </body>

@@ -353,6 +353,7 @@ option[value="fragrance"] {
   display: flex;
   gap: 15px;
   min-height: 160px;
+  position: relative;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -391,6 +392,38 @@ option[value="fragrance"] {
   box-shadow: 0 0 10px #fad083;
 }
 
+/* info icon */
+.info-icon {
+  position: absolute;
+  top: 5px;
+  inset-inline-end: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #6b0b22;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+.info-icon i {
+  font-size: 14px;
+  pointer-events: none;
+}
+.info-icon:hover {
+  background: #6b0b21b0;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.info-icon:active {
+  transform: scale(0.95);
+}
 /* SELECTED PRODUCTS*/
 /* selected container */
 .selected-products::before {
@@ -478,11 +511,102 @@ option[value="fragrance"] {
   background: rgba(255, 255, 255, 0.15);
   transform: scale(1.1);
 }
+/* Modal descriptions */
+/* =========================
+   MODAL BACKDROP
+========================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* hidden state */
+.modal.hidden {
+  display: none;
+}
+
+/* =========================
+   MODAL CARD
+========================= */
+.modal-content {
+  width: min(600px, 90%);
+  background: #111;
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  box-shadow: 0 0 25px rgba(227, 165, 53, 0.3);
+  animation: modalIn 0.25s ease;
+}
+
+@keyframes modalIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+/* image */
+.modal-content img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+/* close button */
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #fff;
+  cursor: pointer;
+}
+.modal-close:hover {
+  color: #e3a535;
+}
+#productModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#productModal.active {
+  display: flex;
+}
+/* text styling */
+#modalTitle {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+#modalBrand {
+  color: #e3a535;
+  margin-bottom: 10px;
+}
+
+.modal-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #ddd;
+}
 
 .generate-btn {
   width: 100%;
-  margin-top: 20px;
-  padding: 14px;
+  margin-top: 5px;
+  padding: 5px;
   font-size: 18px;
   letter-spacing: 0.5px;
   color: #1a1a1a;
@@ -493,13 +617,11 @@ option[value="fragrance"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   position: relative;
   overflow: hidden;
   box-shadow:
     0 4px 15px rgba(227, 165, 53, 0.3),
     inset 0 0 5px rgba(255, 255, 255, 0.2);
-
   transition: all 0.25s ease;
 }
 
@@ -510,13 +632,13 @@ option[value="fragrance"] {
     inset 0 0 8px rgba(255, 255, 255, 0.3);
   background: linear-gradient(135deg, #fad083, #e3a535, #fad083);
 }
-/* content (text + icon) */
-.generate-btn .btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
+.generate-btn .btn-content i {
+  font-size: 16px; /* match text visually */
+  display: flex;
+  vertical-align: middle;
+  justify-content: center;
+}
 /* loader (3 dots) */
 .generate-btn .btn-loader {
   position: absolute;
